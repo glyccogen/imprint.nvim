@@ -4,6 +4,10 @@ create beautiful code screenshots instantly from Neovim, using TOhtml.
 
 `imprint.nvim` is a Neovim plugin to take beautiful code-snippets images from code.
 
+![sample screenshot](sample.png)
+
+Code is exactly what you see in Neovim, preserved with the same colors, highlights, and diagnostics.
+
 ## Dependencies
 
 -   **Python 3.8+** with `pip` and `venv`

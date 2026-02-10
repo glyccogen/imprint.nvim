@@ -1,3 +1,5 @@
 testfile.py
 *.html
 *.png
+!sample.png
+for_screenshot.lua
