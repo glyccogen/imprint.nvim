@@ -1,6 +1,11 @@
-# imprint.nvim
+# <div align="center"> imprint.nvim </div>
 
-**WYSIWYG code screenshots from Neovim (TOhtml → PNG).**  
+<div align="center">
+
+**WYSIWYG code screenshots from Neovim (TOhtml -> PNG)**  
+
+</div>
+
 Create images from the current buffer or a visual selection - with the same colorscheme, highlights, and diagnostics you see in Neovim.
 
 *   Buffer **or** selected range
