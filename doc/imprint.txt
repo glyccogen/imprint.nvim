@@ -1,0 +1,47 @@
+*imprint*   pixel-perfect code screenshots from Neovim
+
+INTRODUCTION                                                        *imprint-intro*
+
+imprint.nvim renders the current buffer or a visual selection to PNG.
+https://github.com/glyccogen/imprint.nvim
+
+USAGE                                                                *imprint-usage*
+
+:Imprint [options] [title]                                           *:Imprint*
+
+Options:
+-c, --clipboard-only    copy only, do not save to disk
+--notitle               do not prompt for a title
+
+CONFIGURATION                                                       *imprint-config*
+
+require('imprint').setup({
+  default_title = nil,
+  required_title_by_default = true,
+  copy_to_clipboard = false,
+  output_dir = nil,
+  background = "#A5A6F6",
+  line_numbers = "absolute_from_1",
+  highlight_current_line = false,
+  diagnostics_on = false,
+  icons_on = true,
+})
+
+DEPENDENCIES                                                         *imprint-deps*
+
+- Neovim 0.10+ (Lua tohtml module)
+- Python 3.8+ with pip and venv
+- nvim-web-devicons (optional, titlebar icons)
+- xclip (optional, clipboard copy)
+
+CHECKHEALTH                                                          *imprint-health*
+
+:checkhealth imprint
+
+Reports missing dependencies and venv / Playwright status.
+
+TROUBLESHOOTING                                                      *imprint-trouble*
+
+If Playwright install fails, run:
+  /path/to/imprint/venv/bin/playwright install --with-deps chromium
+
