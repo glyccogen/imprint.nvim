@@ -49,11 +49,20 @@ use {
 
 ## Dependencies
 
+-   **Neovim 0.10+**
 -   **Python 3.8+** with `pip` and `venv`
--   `nvim-web-devicons` for file icons in the titlebar
--   `xclip` for copying images to the clipboard
+-   (optional) `nvim-web-devicons` for file icons in the titlebar
+-   (optional) `xclip`  for copying images to the clipboard
 
-> first run downloads Chromium via Playwright (for HTML -> PNG rendering)
+### how it works
+
+1.  **html export** - plugin calls Neovim’s built‑in `:TOhtml` command (Lua `tohtml` module, Neovim 0.10+), which converts the current buffer or visual selection into a temporary html file.
+2.  **headless capture** - `py/render.py` renders html file using **Playwright**. It launches a headless Chromium browser, takes a screenshot of the rendered code block.
+3.  **window dressing** - then same Python script adds a window frame and background.
+4.  **result delivery** - the resulting image is saved to the output directory if `--clipboard-only` is not set. If `copy_to_clipboard` is enabled, the image is copied to the system clipboard.
+
+> [!WARNING]
+> the Python/Playwright step is isolated in a dedicated virtual environment, so it does not interfere with your system Python packages, and Playwright with Chromium is downloaded only once on first use.
 
 ## Configuration and default values
 
@@ -117,4 +126,3 @@ create a screenshot from the current buffer or a selected range.
 ```bash
 /path/to/imprint/venv/bin/playwright install --with-deps chromium
 ```
-
