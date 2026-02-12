@@ -103,9 +103,9 @@ local function get_icon(buf_path)
 		{ default = true })
 end
 
-local function plan_output(buf_path, clipboard_only)
+local function plan_output(buf_path, clipboard_only, open_after)
 	if clipboard_only then
-		return { path = vim.fn.tempname() .. ".png", cleanup = true }
+		return { path = vim.fn.tempname() .. ".png", cleanup = not open_after }
 	end
 	local output_dir
 	if config.opts.output_dir == nil then
@@ -153,11 +153,22 @@ local function render_image(temp_html_path, output_path, title, icon, icon_color
 	})
 end
 
-local function finalize_output(output_path, cleanup)
+local function open_image(output_path)
+	local ok = pcall(vim.ui.open, output_path)
+	if not ok then
+		notify("failed to open image: " .. output_path, vim.log.levels.WARN)
+		return false
+	end
+	return true
+end
+
+local function finalize_output(output_path, cleanup, open_after)
 	local copy_success = do_copy_to_clipboard(output_path)
+	local opened = open_after and open_image(output_path) or false
 	local message_parts = {}
 	if not cleanup then table.insert(message_parts, "saved to: \"" .. output_path .. "\"") end
 	if copy_success then table.insert(message_parts, "copied to clipboard") end
+	if opened then table.insert(message_parts, "image is opened") end
 	notify(table.concat(message_parts, "\n"))
 	if cleanup then vim.fn.delete(output_path) end
 end
@@ -222,7 +233,7 @@ local function renumber_line_numbers_from_1(html_content)
 	return out
 end
 
-local function create_imprint(title, range, clipboard_only)
+local function create_imprint(title, range, clipboard_only, open_after)
 	local tohtml_mod = require('tohtml')
 
 	local win = vim.api.nvim_get_current_win()
@@ -275,7 +286,7 @@ local function create_imprint(title, range, clipboard_only)
 	local temp_html_path = vim.fn.tempname() .. ".html"
 	vim.fn.writefile(html_content, temp_html_path)
 
-	local output_plan = plan_output(buf_path, clipboard_only)
+	local output_plan = plan_output(buf_path, clipboard_only, open_after)
 
 	local icon, icon_color = get_icon(buf_path)
 	notify("rendering image...")
@@ -286,7 +297,7 @@ local function create_imprint(title, range, clipboard_only)
 				local message = err ~= "" and err or out
 				return notify("failed to create screenshot:\n" .. message, vim.log.levels.ERROR)
 			end
-			finalize_output(output_plan.path, output_plan.cleanup)
+			finalize_output(output_plan.path, output_plan.cleanup, open_after)
 		end)
 	end)
 end
@@ -294,12 +305,15 @@ end
 function M.imprint_command(opts)
 	local parts = opts.fargs or {}
 	local clipboard_only = false
+	local open_after = false
 	local no_title = false
 	local title_parts = {}
 	for _, part in ipairs(parts) do
 		if part == "-c" or part == "--clipboard-only" then
 			clipboard_only = true
-		elseif part == "--notitle" then
+		elseif part == "-o" or part == "--open" then
+			open_after = true
+		elseif part == "--no-title" then
 			no_title = true
 		else
 			table.insert(title_parts, part)
@@ -311,7 +325,7 @@ function M.imprint_command(opts)
 
 	local function run(title)
 		check_deps(function()
-			create_imprint(title, range, clipboard_only)
+			create_imprint(title, range, clipboard_only, open_after)
 		end)
 	end
 

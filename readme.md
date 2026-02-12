@@ -75,7 +75,7 @@ require('imprint').setup({
 	-- fallback if no title is provided
 	default_title = nil,
 
-	-- when true, prompt for a title if none was provided and --notitle is not set
+	-- when true, prompt for a title if none was provided and --no-title is not set
 	required_title_by_default = true,
 
 	-- copy the generated image to the clipboard after saving
@@ -112,12 +112,17 @@ require('imprint').setup({
 create a screenshot from the current buffer or a selected range.
 
 ```vim
-:['<,'>]Imprint [-c | --clipboard-only] [--notitle] [title]
+:['<,'>]Imprint [options] [title]
 ```
 
+### Options
+
 -   `-c`, `--clipboard-only` - copy the image to the clipboard and do not save it to disk
--   `--notitle` - do not prompt for a title when none is provided
+-   `-o`, `--open` - open the generated image
+-   `--no-title` - do not prompt for a title when none is provided
 -   `title` - optional title for the window header
+
+Using `-c` (`--clipboard_only`) and `-o` (`--open`) together: the temporary image opens with default image viewer and it will not be deleted.
 
 ## Troubleshooting
 
@@ -129,4 +134,3 @@ create a screenshot from the current buffer or a selected range.
 NVIM_DATA_DIR="$(nvim --headless -u NONE --cmd 'lua io.write(vim.fn.stdpath("data"))' +qa)"
 "$NVIM_DATA_DIR/imprint.nvim/venv/bin/playwright" install --with-deps chromium
 ```
-

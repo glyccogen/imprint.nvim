@@ -2,7 +2,7 @@
 
 INTRODUCTION                                                        *imprint-intro*
 
-imprint.nvim renders the current buffer or a visual selection to PNG.
+imprint.nvim renders the current buffer or a visual selection to image.
 https://github.com/glyccogen/imprint.nvim
 
 USAGE                                                                *imprint-usage*
@@ -11,7 +11,10 @@ USAGE                                                                *imprint-us
 
 Options:
 -c, --clipboard-only    copy only, do not save to disk
---notitle               do not prompt for a title
+-o, --open              open the generated image
+--no-title               do not prompt for a title
+
+With -c and -o together: the temporary image opens and it will not be deleted.
 
 CONFIGURATION                                                       *imprint-config*
 
