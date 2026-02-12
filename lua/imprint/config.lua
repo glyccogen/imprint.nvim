@@ -3,7 +3,6 @@ local M = {}
 M.defaults = {
 	default_title = nil,
 	required_title_by_default = true,
-	-- xclip only
 	copy_to_clipboard = false,
 	output_dir = nil,
 	background = "#A5A6F6",
