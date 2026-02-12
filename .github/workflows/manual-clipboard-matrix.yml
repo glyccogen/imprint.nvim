@@ -1,0 +1,118 @@
+name: manual clipboard matrix
+
+on:
+  workflow_dispatch:
+    inputs:
+      targets:
+        description: "linux/linux+macos"
+        required: true
+        default: "linux"
+        type: choice
+        options:
+          - linux
+          - all
+
+jobs:
+  clipboard-wayland:
+    if: ${{ github.event.inputs.targets == 'linux' || github.event.inputs.targets == 'all' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: install nvim
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl tar xz-utils xclip wl-clipboard sway
+          NVIM_TARBALL=/tmp/nvim-linux.tar.gz
+          curl -fsSL -o "$NVIM_TARBALL" "https://github.com/neovim/neovim/releases/download/stable/nvim-linux-x86_64.tar.gz"
+          test -s "$NVIM_TARBALL"
+
+          sudo rm -rf /opt/nvim-linux64 /opt/nvim-linux-x86_64
+          sudo tar -C /opt -xzf "$NVIM_TARBALL"
+          if [ -d /opt/nvim-linux-x86_64/bin ]; then
+            echo "/opt/nvim-linux-x86_64/bin" >> "$GITHUB_PATH"
+          else
+            echo "/opt/nvim-linux64/bin" >> "$GITHUB_PATH"
+          fi
+
+      - name: clipboard_spec.lua
+        env:
+          WAYLAND_DISPLAY: wayland-0
+        run: |
+          nvim --headless -u NONE -c "lua dofile('tests/clipboard_spec.lua')" -c "qa"
+
+      - name: wl-copy
+        run: |
+          set -euxo pipefail
+
+          export XDG_RUNTIME_DIR=/tmp/xdg-runtime
+          mkdir -p "$XDG_RUNTIME_DIR"
+          chmod 700 "$XDG_RUNTIME_DIR"
+          export WAYLAND_DISPLAY=wayland-1
+          export WLR_BACKENDS=headless
+          export WLR_LIBINPUT_NO_DEVICES=1
+          export WLR_RENDERER=pixman
+
+          sway -c /dev/null --unsupported-gpu >/tmp/sway.log 2>&1 &
+          SWAY_PID=$!
+          cleanup() {
+            code=$?
+            if [ "$code" -ne 0 ]; then
+              cat /tmp/sway.log || true
+            fi
+            kill "$SWAY_PID" || true
+            exit "$code"
+          }
+          trap cleanup EXIT
+
+          for i in $(seq 1 50); do
+            if [ -S "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" ]; then break; fi
+            sleep 0.1
+          done
+          test -S "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY"
+
+          base64 -d > /tmp/imprint_clip.png <<'EOF'
+          iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7sB9kAAAAASUVORK5CYII=
+          EOF
+
+          IMPRINT_PROVIDER=wayland IMPRINT_IMAGE=/tmp/imprint_clip.png \
+            nvim --headless -u NONE -c "lua dofile('tests/clipboard_integration.lua')" -c "qa"
+
+          wl-paste --type image/png > /tmp/imprint_clip_out.png
+          cmp /tmp/imprint_clip.png /tmp/imprint_clip_out.png
+
+  clipboard-macos:
+    if: ${{ github.event.inputs.targets == 'all' }}
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: install nvim
+        run: brew install neovim
+
+      - name: clipboard_spec.lua
+        run: |
+          nvim --headless -u NONE -c "lua dofile('tests/clipboard_spec.lua')" -c "qa"
+
+      - name: osascript
+        run: |
+          set -euxo pipefail
+
+          base64 -d > /tmp/imprint_clip.png <<'EOF'
+          iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7sB9kAAAAASUVORK5CYII=
+          EOF
+
+          printf 'imprint-pbcopy' | pbcopy
+          test "$(pbpaste)" = "imprint-pbcopy"
+
+          IMPRINT_PROVIDER=macos IMPRINT_IMAGE=/tmp/imprint_clip.png \
+            nvim --headless -u NONE -c "lua dofile('tests/clipboard_integration.lua')" -c "qa"
+
+          osascript -e 'set pngData to (the clipboard as «class PNGf»)' \
+                    -e 'set outFile to POSIX file "/tmp/imprint_clip_from_clipboard.png"' \
+                    -e 'set fh to open for access outFile with write permission' \
+                    -e 'set eof fh to 0' \
+                    -e 'write pngData to fh' \
+                    -e 'close access fh'
+
+          test -s /tmp/imprint_clip_from_clipboard.png
