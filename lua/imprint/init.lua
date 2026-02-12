@@ -292,7 +292,7 @@ local function create_imprint(title, range, clipboard_only)
 end
 
 function M.imprint_command(opts)
-	local parts = vim.split(opts.args or "", "%s+")
+	local parts = opts.fargs or {}
 	local clipboard_only = false
 	local no_title = false
 	local title_parts = {}
