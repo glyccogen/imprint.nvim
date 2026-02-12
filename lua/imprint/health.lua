@@ -1,4 +1,5 @@
 local M = {}
+local clipboard = require("imprint.clipboard")
 
 local health = vim.health or require("health")
 
@@ -47,10 +48,12 @@ local function check_tohtml()
 end
 
 local function check_optional()
-	if vim.fn.executable("xclip") == 1 then
-		health.ok("xclip found")
+	local provider = clipboard.detect_provider()
+	if provider then
+		health.ok("clipboard provider selected: " .. provider)
 	else
-		health.warn("xclip not found (needed only for copy_to_clipboard)")
+		health.warn(
+		"no clipboard provider found (optional: osascript on macOS, wl-copy on Wayland, xclip on X11)")
 	end
 
 	local ok_devicons = pcall(require, "nvim-web-devicons")

@@ -11,7 +11,7 @@ Create images from the current buffer or a visual selection - with the same colo
 *   Buffer **or** selected range
 *   Preserves Neovim highlights and colors
 *   Optional titlebar icon (via `nvim-web-devicons`)
-*   Save to file and/or copy to clipboard (X11 only, WIP)
+*   Save to file and/or copy to clipboard
 
 ![sample screenshot](sample.png)
 
@@ -52,7 +52,10 @@ use {
 -   **Neovim 0.10+**
 -   **Python 3.8+** with `pip` and `venv`
 -   (optional) `nvim-web-devicons` for file icons in the titlebar
--   (optional) `xclip`  for copying images to the clipboard
+-   (optional) one clipboard backend:
+    - `xclip` (X11)
+    - `wl-copy` (Wayland)
+    - `osascript` (macOS)
 
 ### how it works
 
@@ -76,7 +79,6 @@ require('imprint').setup({
 	required_title_by_default = true,
 
 	-- copy the generated image to the clipboard after saving
-	-- works with xclip only
 	copy_to_clipboard = false,
 
 	-- output directory for saved screenshots

@@ -1,5 +1,6 @@
 local M = {}
 local config = require('imprint.config')
+local clipboard = require('imprint.clipboard')
 
 local function notify(msg, level)
 	vim.schedule(function()
@@ -80,12 +81,11 @@ end
 
 local function do_copy_to_clipboard(image_path)
 	if not config.opts.copy_to_clipboard then return false end
-	local cmd = { "xclip", "-selection", "clipboard", "-t", "image/png", "-i", image_path }
-	vim.fn.system(cmd)
-	if vim.v.shell_error == 0 then
+	local copied, err = clipboard.copy_image(image_path, clipboard.detect_provider())
+	if copied then
 		return true
 	else
-		notify("failed to copy to clipboard", vim.log.levels.WARN)
+		notify("failed to copy to clipboard: " .. tostring(err), vim.log.levels.WARN)
 		return false
 	end
 end

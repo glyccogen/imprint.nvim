@@ -32,7 +32,10 @@ DEPENDENCIES                                                         *imprint-de
 - Neovim 0.10+ (Lua tohtml module)
 - Python 3.8+ with pip and venv
 - nvim-web-devicons (optional, titlebar icons)
-- xclip (optional, clipboard copy)
+- one clipboard backend (optional, clipboard copy):
+  - wl-copy (Wayland)
+  - osascript (macOS)
+  - xclip (X11)
 
 CHECKHEALTH                                                          *imprint-health*
 
@@ -44,4 +47,3 @@ TROUBLESHOOTING                                                      *imprint-tr
 
 If Playwright install fails, run:
   /path/to/imprint/venv/bin/playwright install --with-deps chromium
-
