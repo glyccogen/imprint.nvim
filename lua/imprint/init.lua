@@ -233,7 +233,7 @@ local function create_imprint(title, range, clipboard_only)
 		cursorline = vim.wo[win].cursorline,
 		signcolumn = vim.wo[win].signcolumn,
 	}
-	local diagnostics_disabled = false
+	local diagnostics_was_enabled = nil
 	local html_content
 	local ok, err_msg = xpcall(function()
 		vim.wo[win].cursorline = config.opts.highlight_current_line
@@ -249,8 +249,11 @@ local function create_imprint(title, range, clipboard_only)
 			tohtml_opts.number_lines = vim.wo[win].number or vim.wo[win].relativenumber
 		end
 		if not config.opts.diagnostics_on then
+			local ok_enabled, enabled = pcall(vim.diagnostic.is_enabled, { bufnr = buf })
+			if ok_enabled then
+				diagnostics_was_enabled = enabled
+			end
 			vim.diagnostic.enable(false, { bufnr = buf })
-			diagnostics_disabled = true
 		end
 		html_content = tohtml_mod.tohtml(win, tohtml_opts)
 		if range then html_content = slice_html_pre_block(html_content, range) end
@@ -262,8 +265,8 @@ local function create_imprint(title, range, clipboard_only)
 	vim.wo[win].relativenumber = saved_opts.relativenumber
 	vim.wo[win].cursorline = saved_opts.cursorline
 	vim.wo[win].signcolumn = saved_opts.signcolumn
-	if diagnostics_disabled then
-		vim.diagnostic.enable(true, { bufnr = buf })
+	if diagnostics_was_enabled ~= nil then
+		vim.diagnostic.enable(diagnostics_was_enabled, { bufnr = buf })
 	end
 	if not ok then
 		return notify("failed to generate HTML: " .. tostring(err_msg), vim.log.levels.ERROR)
