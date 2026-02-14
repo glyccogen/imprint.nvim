@@ -64,7 +64,7 @@ function M.detect_provider()
 		return "x11"
 	end
 
-    if (vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1) and vim.fn.executable("powershell") == 1 then
+    if (vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1) and vim.fn.executable("powershell.exe") == 1 then
 		return "windows"
 	end
 
