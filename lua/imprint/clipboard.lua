@@ -64,6 +64,10 @@ function M.detect_provider()
 		return "x11"
 	end
 
+    if (vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1) and vim.fn.executable("powershell.exe") == 1 then
+		return "windows"
+	end
+
 	return nil
 end
 
@@ -106,6 +110,19 @@ function M.copy_image(image_path, provider)
 		local ok, err = run_cmd(cmd)
 		if ok then return true, nil end
 		return false, "osascript failed: " .. err
+	elseif provider == "windows" then
+		local cmd = {
+			"powershell.exe",
+			"-NoProfile",
+			"-Command",
+			string.format(
+				"Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.Clipboard]::SetImage([System.Drawing.Image]::FromFile('%s'))",
+				image_path
+			),
+		}
+		local ok, err = run_cmd(cmd)
+		if ok then return true, nil end
+		return false, "powershell failed: " .. err
 	end
 
 	return false, "err " .. tostring(provider)

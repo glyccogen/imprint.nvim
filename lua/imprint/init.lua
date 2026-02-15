@@ -13,8 +13,11 @@ do
 	M.plugin_path = path .. "../../"
 end
 M.data_path = vim.fn.stdpath("data") .. "/imprint.nvim"
+M.bin_path = "/bin"
+if vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1 then
+    M.bin_path = "/Scripts"
+end
 M.venv_path = M.data_path .. "/venv"
-
 local function check_deps(on_complete)
 	local deps_installed = M.venv_path .. "/.deps_installed"
 	if vim.fn.filereadable(deps_installed) == 1 then
@@ -52,7 +55,7 @@ local function check_deps(on_complete)
 		end
 
 		local pip_cmd = {
-			M.venv_path .. "/bin/python",
+			M.venv_path .. M.bin_path .. "/python",
 			"-m",
 			"pip",
 			"install",
@@ -66,7 +69,7 @@ local function check_deps(on_complete)
 				return
 			end
 
-			local playwright_cmd = { M.venv_path .. "/bin/playwright", "install", "chromium" }
+			local playwright_cmd = { M.venv_path .. M.bin_path.. "/playwright", "install", "chromium" }
 
 			run_job(playwright_cmd, function(pw_code, _, pw_err)
 				if pw_code ~= 0 then
@@ -121,7 +124,7 @@ end
 
 local function render_image(temp_html_path, output_path, title, icon, icon_color, on_complete)
 	local cmd_args = {
-		M.venv_path .. "/bin/python",
+		M.venv_path .. M.bin_path.. "/python",
 		M.plugin_path .. "/py/render.py",
 		temp_html_path,
 		output_path,
